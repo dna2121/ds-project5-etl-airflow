@@ -1,25 +1,4 @@
 version: '2.1'
-
-x-common:
-  &common
-  image: apache/airflow:2.3.0
-  user: "${AIRFLOW_UID}:0"
-  env_file: 
-    - .env
-  volumes:
-    - ./dags:/opt/airflow/dags
-    - ./logs:/opt/airflow/logs
-    - ./plugins:/opt/airflow/plugins
-    - /var/run/docker.sock:/var/run/docker.sock
-
-x-depends-on:
-  &depends-on
-  depends_on:
-    postgres:
-      condition: service_healthy
-    airflow-init:
-      condition: service_started
-
 services:
   postgres:
     image: postgres:13
@@ -36,8 +15,20 @@ services:
       - postgres_airflow:/var/lib/postgresql/data
 
   scheduler:
-    <<: *common
-    <<: *depends-on
+    image: apache/airflow:2.3.0
+    user: "${AIRFLOW_UID}:0"
+    env_file: 
+      - .env
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_started
     container_name: airflow-scheduler
     command: scheduler
     restart: on-failure
@@ -45,8 +36,20 @@ services:
       - "8793:8793"
 
   webserver:
-    <<: *common
-    <<: *depends-on
+    image: apache/airflow:2.3.0
+    user: "${AIRFLOW_UID}:0"
+    env_file: 
+      - .env
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_started
     container_name: airflow-webserver
     restart: always
     command: webserver
@@ -59,7 +62,15 @@ services:
       retries: 5
   
   airflow-init:
-    <<: *common
+    image: apache/airflow:2.3.0
+    user: "${AIRFLOW_UID}:0"
+    env_file: 
+      - .env
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
     container_name: airflow-init
     entrypoint: /bin/bash
     command:
